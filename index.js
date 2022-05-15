@@ -1,7 +1,7 @@
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
-const res = require('express/lib/response');
+
 
 const server = http.createServer((inRequest, inResponse) => {
   // Build file path
@@ -41,13 +41,21 @@ const server = http.createServer((inRequest, inResponse) => {
   // Read File
   fs.readFile(filePath, (error, content) => {
     if (error) {
-      if (error.code == 'ENONET') {
+      if (error.code == 'ENOENT') {
         // Page not found
         fs.readFile(path.join(__dirname, 'public', '404.html'), (error, content) => {
           inResponse.writeHead(404, { 'Content-Type': 'text/html' });
           inResponse.end(content, 'utf8');
         });
+      } else {
+        // Some server error
+        inResponse.writeHead(500);
+        inResponse.end(`Server Error: ${error.code}`);
       }
+    } else {
+      // Success
+      inResponse.writeHead(200, { 'Content-Type': contentType });
+      inResponse.end(content, 'utf8');
     }
   });
 
